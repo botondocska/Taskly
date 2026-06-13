@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0f1117"/>
+<title>Taskly</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0f1117;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+input,select,button{font-family:inherit}
+input,select{width:100%;background:#0f1117;border:1px solid #2a2d3a;border-radius:8px;padding:10px 12px;color:#e2e8f0;font-size:14px;outline:none}
+input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#6366F1;flex-shrink:0;margin-top:2px}
+select option{background:#1a1d27}
+button{cursor:pointer;border:none;border-radius:8px;font-weight:600;font-size:13px}
+.btn-primary{background:#6366F1;color:#fff;padding:9px 16px}
+.btn-ghost{background:transparent;color:#aaa;border:1px solid #2a2d3a;padding:7px 12px}
+.btn-danger{background:#EF444422;color:#EF4444;border:1px solid #EF444433;padding:7px 12px}
+.btn-sm{padding:5px 10px;font-size:12px}
+nav{position:sticky;top:0;z-index:50;background:#0f1117;border-bottom:1px solid #1a1d27;display:flex;align-items:center;gap:6px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top))}
+nav .logo{font-weight:800;font-size:17px;letter-spacing:-.02em;margin-right:10px}
+nav button{background:transparent;color:#888;border:1px solid transparent;padding:7px 14px;border-radius:8px;font-size:13px}
+nav button.active{background:#6366F1;color:#fff;border-color:transparent}
+.page{max-width:640px;margin:0 auto;padding:20px 14px}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.page-header h2{font-size:20px;font-weight:700;color:#e2e8f0}
+.page-header p{font-size:13px;color:#666;margin-top:2px}
+.card{background:#1a1d27;border-radius:10px;padding:13px 14px;margin-bottom:8px}
+.todo-card{display:flex;gap:12px;align-items:flex-start;border-left:4px solid #444}
+.todo-card.done{opacity:.55}
+.todo-title{font-size:14px;font-weight:600;color:#e2e8f0;word-break:break-word}
+.todo-card.done .todo-title{text-decoration:line-through}
+.todo-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:5px}
+.todo-meta span{font-size:11px;color:#666}
+.rrule-badge{background:#2a2d3a;padding:2px 6px;border-radius:4px;color:#888!important}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.04em}
+.dot{display:inline-block;border-radius:50%;flex-shrink:0}
+.todo-actions{display:flex;gap:6px;flex-shrink:0}
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filters select{flex:1;min-width:100px}
+.empty{text-align:center;color:#444;padding:48px 0}
+.empty .icon{font-size:36px;margin-bottom:10px}
+.overlay{position:fixed;inset:0;background:#000a;z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.modal{background:#1a1d27;border:1px solid #2a2d3a;border-radius:16px 16px 0 0;padding:22px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-header span{font-weight:700;font-size:15px}
+.modal-header button{background:transparent;color:#aaa;border:none;font-size:18px;line-height:1;padding:4px}
+.form-row{display:flex;flex-direction:column;gap:10px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.label-card{display:flex;align-items:center;gap:12px;border-left:4px solid #444}
+.label-card .name{flex:1;font-weight:600;color:#e2e8f0}
+.label-card .count{font-size:12px;color:#555}
+.color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;padding:0;flex-shrink:0}
+.stat-card{background:#1a1d27;border-radius:12px;padding:18px;margin-bottom:18px}
+.stat-card h3{font-size:13px;color:#aaa;margin-bottom:10px}
+.big-num{font-size:28px;font-weight:800;color:#e2e8f0}
+.diff{font-size:13px;font-weight:600;margin-left:8px}
+.chart-wrap{display:flex;justify-content:center;margin-top:14px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.legend-item{font-size:12px;padding:3px 10px;border-radius:99px}
+.field-label{font-size:12px;color:#888;margin-bottom:4px}
+.rrule-section{background:#0f1117;border:1px solid #2a2d3a;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.weekday-grid{display:flex;gap:6px;flex-wrap:wrap}
+.weekday-btn{padding:5px 9px;border-radius:6px;font-size:12px;font-weight:600;background:#1a1d27;color:#888;border:1px solid #2a2d3a}
+.weekday-btn.active{background:#6366F133;color:#6366F1;border-color:#6366F1}
+.input-row{display:flex;gap:8px;align-items:center}
+.input-row input,.input-row select{flex:1}
+.input-row span{color:#888;font-size:13px;white-space:nowrap}
+/* notification banner */
+.notif-banner{background:#6366F111;border:1px solid #6366F133;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px}
+.notif-banner .nb-icon{font-size:18px;flex-shrink:0}
+.notif-banner .nb-text{flex:1;color:#aaa}
+.notif-banner .nb-text strong{color:#e2e8f0;display:block;margin-bottom:2px}
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo">✓ Taskly</span>
+  <button id="nav-todos" class="active" onclick="setPage('todos')">Tasks</button>
+  <button id="nav-labels" onclick="setPage('labels')">Labels</button>
+  <button id="nav-stats" onclick="setPage('stats')">Stats</button>
+</nav>
+<div id="app"></div>
+<div id="modal-overlay" class="overlay" style="display:none" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span id="modal-title">Modal</span>
+      <button onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<script>
+const LABEL_COLORS=["#6366F1","#EC4899","#10B981","#F59E0B","#3B82F6","#EF4444","#8B5CF6","#14B8A6"];
+const WEEKDAYS=[["MO","Mon"],["TU","Tue"],["WE","Wed"],["TH","Thu"],["FR","Fri"],["SA","Sat"],["SU","Sun"]];
+const today=new Date().toISOString().slice(0,10);
+const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+// Schedule: 05:00, 09:00, 13:00, 17:00, 21:00
+const NOTIF_HOURS=[5,9,13,17,21];
+const NOTIF_MSG="Check your tasks ✓";
+const NOTIF_TITLE="Taskly";
+let _notifTimer=null;
+
+function msUntilNext(hours){
+  const now=new Date();
+  const candidates=hours.map(h=>{
+    const d=new Date(now);
+    d.setHours(h,0,0,0);
+    if(d<=now)d.setDate(d.getDate()+1);
+    return d-now;
+  });
+  return Math.min(...candidates);
+}
+
+function scheduleNext(){
+  clearTimeout(_notifTimer);
+  const wait=msUntilNext(NOTIF_HOURS);
+  _notifTimer=setTimeout(()=>{
+    fireNotif();
+    scheduleNext();
+  },wait);
+}
+
+function fireNotif(){
+  if(Notification.permission==="granted"){
+    new Notification(NOTIF_TITLE,{body:NOTIF_MSG,icon:"https://fav.farm/✓"});
+  }
+}
+
+async function initNotifications(){
+  if(!("Notification" in window))return "unsupported";
+  if(Notification.permission==="granted"){scheduleNext();return "granted";}
+  if(Notification.permission==="denied")return "denied";
+  // not yet asked — ask
+  const perm=await Notification.requestPermission();
+  if(perm==="granted"){scheduleNext();return "granted";}
+  return perm;
+}
+
+// ── seed ──────────────────────────────────────────────────────────────────────
+const SEED_LABELS=[
+  {id:"l1",name:"Chores",color:"#10B981"},
+  {id:"l2",name:"Study",color:"#6366F1"},
+  {id:"l3",name:"Sport",color:"#EC4899"},
+  {id:"l4",name:"Hobby",color:"#F59E0B"},
+];
+const SEED_TODOS=[
+  {id:"t1",title:"Clean kitchen",labelId:"l1",dueDate:today,rrule:{freq:"DAILY",interval:1,byday:[],bymonthday:0},minutes:30,done:false,createdAt:today,completedDates:[]},
+  {id:"t2",title:"Read 30 pages",labelId:"l2",dueDate:today,rrule:{freq:"DAILY",interval:1,byday:[],bymonthday:0},minutes:45,done:true,createdAt:today,completedDates:[today,yesterday]},
+  {id:"t3",title:"Morning run",labelId:"l3",dueDate:today,rrule:{freq:"DAILY",interval:1,byday:[],bymonthday:0},minutes:40,done:true,createdAt:today,completedDates:[today]},
+  {id:"t4",title:"Sketch session",labelId:"l4",dueDate:today,rrule:{freq:"WEEKLY",interval:1,byday:["SA","SU"],bymonthday:0},minutes:60,done:false,createdAt:today,completedDates:[]},
+  {id:"t5",title:"Vacuum floors",labelId:"l1",dueDate:yesterday,rrule:{freq:"",interval:1,byday:[],bymonthday:0},minutes:20,done:true,createdAt:yesterday,completedDates:[yesterday]},
+];
+
+function load(key,fb){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fb;}catch(e){return fb;}}
+function save(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+
+let state={
+  todos:load("taskly_todos2",SEED_TODOS),
+  labels:load("taskly_labels",SEED_LABELS),
+  page:"todos",filterLabel:"",filterDone:"all",statDays:7,
+  notifStatus:Notification?.permission||"unsupported",
+};
+
+function persist(){save("taskly_todos2",state.todos);save("taskly_labels",state.labels);}
+
+let _id=Date.now();
+const uid=()=>`id_${++_id}`;
+const labelMap=()=>Object.fromEntries(state.labels.map(l=>[l.id,l]));
+
+function rruleLabel(r){
+  if(!r||!r.freq)return "";
+  const iv=r.interval>1?`every ${r.interval} `:"";
+  const freqMap={DAILY:"day",WEEKLY:"week",MONTHLY:"month",YEARLY:"year"};
+  let s=`↺ ${iv}${freqMap[r.freq]||r.freq}`;
+  if(r.freq==="WEEKLY"&&r.byday&&r.byday.length)s+=` (${r.byday.join(",")})`;
+  if(r.freq==="MONTHLY"&&r.bymonthday)s+=` on day ${r.bymonthday}`;
+  return s;
+}
+function nextOccurrence(todo){
+  const r=todo.rrule;
+  if(!r||!r.freq||!todo.dueDate)return null;
+  const d=new Date(todo.dueDate+"T12:00:00");
+  const iv=r.interval||1;
+  if(r.freq==="DAILY")d.setDate(d.getDate()+iv);
+  if(r.freq==="WEEKLY")d.setDate(d.getDate()+7*iv);
+  if(r.freq==="MONTHLY")d.setMonth(d.getMonth()+iv);
+  if(r.freq==="YEARLY")d.setFullYear(d.getFullYear()+iv);
+  return d.toISOString().slice(0,10);
+}
+
+function filteredTodos(){
+  return state.todos.filter(t=>{
+    if(state.filterLabel&&t.labelId!==state.filterLabel)return false;
+    if(state.filterDone==="done"&&!t.done)return false;
+    if(state.filterDone==="pending"&&t.done)return false;
+    return true;
+  }).sort((a,b)=>{
+    if(a.done!==b.done)return a.done?1:-1;
+    return(a.dueDate||"")<(b.dueDate||"")?-1:1;
+  });
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────────
+function h(tag,attrs,...children){
+  const el=document.createElement(tag);
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
+    if(k==="className")el.className=v;
+    else if(k.startsWith("on"))el.addEventListener(k.slice(2).toLowerCase(),v);
+    else el.setAttribute(k,v);
+  });
+  children.flat().forEach(c=>{
+    if(c==null||c===false)return;
+    el.appendChild(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c);
+  });
+  return el;
+}
+function svg(tag,attrs,...children){
+  const NS="http://www.w3.org/2000/svg";
+  const el=document.createElementNS(NS,tag);
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  children.flat().forEach(c=>{if(c==null)return;el.appendChild(typeof c==="string"?document.createTextNode(c):c);});
+  return el;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+let _onModalClose=null;
+function openModal(title,bodyEl,onClose){
+  document.getElementById("modal-title").textContent=title;
+  const body=document.getElementById("modal-body");
+  body.innerHTML="";body.appendChild(bodyEl);
+  document.getElementById("modal-overlay").style.display="flex";
+  _onModalClose=onClose||null;
+}
+function closeModal(){
+  document.getElementById("modal-overlay").style.display="none";
+  if(_onModalClose){_onModalClose();_onModalClose=null;}
+}
+
+// ── Notification banner ───────────────────────────────────────────────────────
+function notifBanner(){
+  const s=state.notifStatus;
+  if(s==="unsupported")return null;
+
+  const banner=h("div",{className:"notif-banner"});
+  const icon=h("span",{className:"nb-icon"});
+  const text=h("div",{className:"nb-text"});
+
+  if(s==="granted"){
+    icon.textContent="🔔";
+    const strong=h("strong",{},"Reminders on");
+    text.append(strong,"Daily at 5am · 9am · 1pm · 5pm · 9pm");
+    banner.append(icon,text);
+  } else if(s==="denied"){
+    icon.textContent="🔕";
+    const strong=h("strong",{},"Reminders blocked");
+    text.append(strong,"Enable notifications in browser/OS settings.");
+    banner.append(icon,text);
+  } else {
+    icon.textContent="🔔";
+    const strong=h("strong",{},"Enable reminders?");
+    text.append(strong,"Get nudged 5× daily to check tasks.");
+    const btn=h("button",{className:"btn-primary btn-sm",onClick:async()=>{
+      const result=await initNotifications();
+      state.notifStatus=result;
+      render();
+    }},"Allow");
+    banner.append(icon,text,btn);
+  }
+  return banner;
+}
+
+// ── RRule form section ────────────────────────────────────────────────────────
+function rruleSection(initial,onChange){
+  const r=initial||{freq:"",interval:1,byday:[],bymonthday:0};
+  let cur={freq:r.freq||"",interval:r.interval||1,byday:[...(r.byday||[])],bymonthday:r.bymonthday||0};
+  const wrap=h("div",{className:"rrule-section"});
+  const freqSel=h("select",{onChange:e=>{cur.freq=e.target.value;rebuild();onChange(cur);}});
+  [["","No repeat"],["DAILY","Daily"],["WEEKLY","Weekly"],["MONTHLY","Monthly"],["YEARLY","Yearly"]].forEach(([v,l])=>{
+    const o=h("option",{value:v},l);if(cur.freq===v)o.selected=true;freqSel.appendChild(o);
+  });
+  wrap.appendChild(freqSel);
+  const extra=h("div",{style:"display:flex;flex-direction:column;gap:10px"});
+  wrap.appendChild(extra);
+  function rebuild(){
+    extra.innerHTML="";
+    if(!cur.freq)return;
+    const ivRow=h("div",{className:"input-row"});
+    const ivInp=h("input",{type:"number",min:1,max:99,value:cur.interval,style:"width:70px",onChange:e=>{cur.interval=Math.max(1,parseInt(e.target.value)||1);onChange(cur);}});
+    const freqWord={DAILY:"day(s)",WEEKLY:"week(s)",MONTHLY:"month(s)",YEARLY:"year(s)"}[cur.freq]||"";
+    ivRow.append(h("span",{},"Every"),ivInp,h("span",{},freqWord));
+    extra.appendChild(ivRow);
+    if(cur.freq==="WEEKLY"){
+      extra.appendChild(h("p",{className:"field-label"},"On days"));
+      const grid=h("div",{className:"weekday-grid"});
+      WEEKDAYS.forEach(([code,label])=>{
+        const btn=h("button",{className:"weekday-btn"+(cur.byday.includes(code)?" active":""),type:"button",onClick:()=>{
+          if(cur.byday.includes(code))cur.byday=cur.byday.filter(d=>d!==code);
+          else cur.byday.push(code);
+          btn.className="weekday-btn"+(cur.byday.includes(code)?" active":"");
+          onChange(cur);
+        }},label);
+        grid.appendChild(btn);
+      });
+      extra.appendChild(grid);
+    }
+    if(cur.freq==="MONTHLY"){
+      extra.appendChild(h("p",{className:"field-label"},"On day of month (0 = same as start date)"));
+      extra.appendChild(h("input",{type:"number",min:0,max:31,value:cur.bymonthday,onChange:e=>{cur.bymonthday=parseInt(e.target.value)||0;onChange(cur);}}));
+    }
+  }
+  rebuild();
+  return wrap;
+}
+
+// ── Todo form ─────────────────────────────────────────────────────────────────
+function todoForm(initial,onSave){
+  const wrap=h("div",{className:"form-row"});
+  let curRrule=initial?.rrule||{freq:"",interval:1,byday:[],bymonthday:0};
+  const titleEl=h("input",{type:"text",placeholder:"Task title *",value:initial?.title||""});
+  const labelEl=h("select",{});
+  labelEl.appendChild(h("option",{value:""},"— Pick a label * —"));
+  state.labels.forEach(l=>{
+    const o=h("option",{value:l.id},l.name);
+    if(initial?.labelId===l.id)o.selected=true;
+    labelEl.appendChild(o);
+  });
+  if(!initial?.labelId&&state.labels.length)labelEl.value=state.labels[0].id;
+  const dateEl=h("input",{type:"date",value:initial?.dueDate||today});
+  const minRow=h("div",{className:"input-row"});
+  const minInp=h("input",{type:"number",min:0,max:1440,placeholder:"0",value:initial?.minutes||"",style:"width:90px"});
+  minRow.append(minInp,h("span",{},"min estimated"));
+  const rruleWrap=rruleSection(curRrule,r=>{curRrule=r;});
+  const saveBtn=h("button",{className:"btn-primary",onClick:()=>{
+    const title=titleEl.value.trim(),labelId=labelEl.value;
+    if(!title||!labelId){titleEl.style.borderColor="#EF4444";return;}
+    onSave({title,labelId,dueDate:dateEl.value,rrule:curRrule,minutes:parseInt(minInp.value)||0});
+    closeModal();
+  }},"Save");
+  wrap.append(titleEl,labelEl,dateEl,
+    h("div",{},[h("p",{className:"field-label"},"Duration"),minRow]),
+    h("div",{},[h("p",{className:"field-label"},"Repeat"),rruleWrap]),
+    h("div",{className:"form-actions"},h("button",{className:"btn-ghost",onClick:closeModal},"Cancel"),saveBtn)
+  );
+  return wrap;
+}
+
+// ── Label form ────────────────────────────────────────────────────────────────
+function labelForm(initial,onSave){
+  const wrap=h("div",{className:"form-row"});
+  const nameEl=h("input",{type:"text",placeholder:"Label name *",value:initial?.name||""});
+  let chosenColor=initial?.color||LABEL_COLORS[0];
+  const colorGrid=h("div",{className:"color-grid"});
+  const swatches=[];
+  LABEL_COLORS.forEach(c=>{
+    const sw=h("button",{className:"color-swatch",style:`background:${c};border-color:${c===chosenColor?"#fff":"transparent"}`,type:"button",onClick:()=>{
+      chosenColor=c;swatches.forEach(([sc,s])=>s.style.borderColor=sc===c?"#fff":"transparent");
+    }});
+    swatches.push([c,sw]);colorGrid.appendChild(sw);
+  });
+  const saveBtn=h("button",{className:"btn-primary",onClick:()=>{
+    const name=nameEl.value.trim();if(!name){nameEl.style.borderColor="#EF4444";return;}
+    onSave({name,color:chosenColor});closeModal();
+  }},"Save");
+  wrap.append(nameEl,h("div",{},[h("p",{className:"field-label"},"Color"),colorGrid]),
+    h("div",{className:"form-actions"},h("button",{className:"btn-ghost",onClick:closeModal},"Cancel"),saveBtn));
+  return wrap;
+}
+
+// ── Bar chart ─────────────────────────────────────────────────────────────────
+function barChart({leftVal,leftPct,leftLabel,leftColor,rightVal,rightPct,rightLabel,rightColor,leftSub,rightSub}){
+  const W=320,H=130,barW=80,gap=36,maxH=H-40;
+  const h1=Math.round(maxH*leftPct),h2=Math.round(maxH*rightPct);
+  const x1=W/2-barW-gap/2,x2=W/2+gap/2;
+  return svg("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,style:"display:block"},
+    svg("rect",{x:x1,y:maxH-h1+10,width:barW,height:Math.max(h1,2),rx:6,fill:leftColor}),
+    svg("text",{x:x1+barW/2,y:maxH-h1+6,"text-anchor":"middle","font-size":11,fill:leftColor,"font-weight":"bold"},leftVal),
+    svg("text",{x:x1+barW/2,y:H-18,"text-anchor":"middle","font-size":11,fill:"#aaa"},leftLabel),
+    svg("text",{x:x1+barW/2,y:H-4,"text-anchor":"middle","font-size":10,fill:"#555"},leftSub||""),
+    svg("rect",{x:x2,y:maxH-h2+10,width:barW,height:Math.max(h2,2),rx:6,fill:rightColor}),
+    svg("text",{x:x2+barW/2,y:maxH-h2+6,"text-anchor":"middle","font-size":11,fill:rightColor,"font-weight":"bold"},rightVal),
+    svg("text",{x:x2+barW/2,y:H-18,"text-anchor":"middle","font-size":11,fill:"#aaa"},rightLabel),
+    svg("text",{x:x2+barW/2,y:H-4,"text-anchor":"middle","font-size":10,fill:"#555"},rightSub||"")
+  );
+}
+
+// ── Radar ─────────────────────────────────────────────────────────────────────
+function radarChart(data,S=270){
+  if(data.length<3)return h("p",{style:"color:#555;text-align:center;padding:20px 0"},"Need ≥ 3 labels with tasks.");
+  const cx=S/2,cy=S/2,r=S*0.33;
+  const n=data.length;
+  const angle=i=>(Math.PI*2*i)/n-Math.PI/2;
+  const pt=(i,f)=>[cx+Math.cos(angle(i))*r*f,cy+Math.sin(angle(i))*r*f];
+  const values=data.map(d=>Math.min(d.value,1));
+  const polyPts=values.map((v,i)=>pt(i,v).join(",")).join(" ");
+  const el=svg("svg",{width:S,height:S,viewBox:`0 0 ${S} ${S}`,style:"overflow:visible;display:block"});
+  [.25,.5,.75,1].forEach(lvl=>{
+    el.appendChild(svg("polygon",{points:data.map((_,i)=>pt(i,lvl).join(",")).join(" "),fill:"none",stroke:"#2a2d3a","stroke-width":1}));
+  });
+  data.forEach((_,i)=>{const[x,y]=pt(i,1);el.appendChild(svg("line",{x1:cx,y1:cy,x2:x,y2:y,stroke:"#2a2d3a","stroke-width":1}));});
+  el.appendChild(svg("polygon",{points:polyPts,fill:"#6366F155",stroke:"#6366F1","stroke-width":2}));
+  values.forEach((v,i)=>{const[x,y]=pt(i,v);el.appendChild(svg("circle",{cx:x,cy:y,r:4,fill:data[i].color}));});
+  data.forEach((d,i)=>{
+    const[x,y]=pt(i,1.28);
+    const anchor=x<cx-5?"end":x>cx+5?"start":"middle";
+    const g=svg("text",{x,y,"text-anchor":anchor,"font-size":11,fill:"#aaa","font-family":"system-ui"},d.label);
+    g.appendChild(svg("tspan",{x,dy:13,fill:d.color,"font-weight":"bold"},`${Math.round(d.value*100)}%`));
+    el.appendChild(g);
+  });
+  return el;
+}
+
+// ── Pages ─────────────────────────────────────────────────────────────────────
+function renderTodosPage(){
+  const lm=labelMap();
+  const doneToday=state.todos.filter(t=>t.done&&(t.completedDates||[]).includes(today)).length;
+  const dueToday=state.todos.filter(t=>t.dueDate===today).length;
+  const page=h("div",{className:"page"});
+
+  // notification banner
+  const nb=notifBanner();
+  if(nb)page.appendChild(nb);
+
+  page.appendChild(h("div",{className:"page-header"},[
+    h("div",{},[h("h2",{},"Tasks"),h("p",{},`${doneToday} of ${dueToday} done today`)]),
+    h("button",{className:"btn-primary",onClick:()=>{
+      openModal("New task",todoForm(null,data=>{
+        state.todos.push({...data,id:uid(),done:false,createdAt:today,completedDates:[]});
+        persist();render();
+      }));
+    }},"+ Task")
+  ]));
+
+  const filterWrap=h("div",{className:"filters"});
+  const labelSel=h("select",{onChange:e=>{state.filterLabel=e.target.value;render();}});
+  labelSel.appendChild(h("option",{value:""},"All labels"));
+  state.labels.forEach(l=>{const o=h("option",{value:l.id},l.name);if(state.filterLabel===l.id)o.selected=true;labelSel.appendChild(o);});
+  const doneSel=h("select",{onChange:e=>{state.filterDone=e.target.value;render();}});
+  [["all","All"],["pending","Pending"],["done","Done"]].forEach(([v,l])=>{
+    const o=h("option",{value:v},l);if(state.filterDone===v)o.selected=true;doneSel.appendChild(o);
+  });
+  filterWrap.append(labelSel,doneSel);
+  page.appendChild(filterWrap);
+
+  const todos=filteredTodos();
+  if(!todos.length)page.appendChild(h("div",{className:"empty"},[h("div",{className:"icon"},"📋"),h("p",{},"No tasks. Add one above.")]));
+
+  todos.forEach(todo=>{
+    const label=lm[todo.labelId];
+    const card=h("div",{className:`card todo-card${todo.done?" done":""}`,style:`border-left-color:${label?.color||"#444"}`});
+    const chk=h("input",{type:"checkbox",onChange:()=>{
+      const nowDone=!todo.done;
+      const cd=nowDone?[...new Set([...(todo.completedDates||[]),today])]:(todo.completedDates||[]).filter(d=>d!==today);
+      todo.done=nowDone;todo.completedDates=cd;persist();render();
+    }});
+    if(todo.done)chk.checked=true;
+    const info=h("div",{style:"flex:1;min-width:0"});
+    const titleRow=h("div",{style:"display:flex;align-items:center;gap:8px;flex-wrap:wrap"});
+    titleRow.appendChild(h("span",{className:"todo-title"},todo.title));
+    if(label){
+      const badge=h("span",{className:"badge",style:`background:${label.color}22;color:${label.color}`});
+      badge.appendChild(h("span",{className:"dot",style:`width:6px;height:6px;background:${label.color}`}));
+      badge.appendChild(document.createTextNode(label.name));
+      titleRow.appendChild(badge);
+    }
+    info.appendChild(titleRow);
+    const meta=h("div",{className:"todo-meta"});
+    if(todo.dueDate)meta.appendChild(h("span",{},`📅 ${todo.dueDate}`));
+    if(todo.minutes)meta.appendChild(h("span",{},`⏱ ${todo.minutes}min`));
+    const rl=rruleLabel(todo.rrule);
+    if(rl)meta.appendChild(h("span",{className:"rrule-badge"},rl));
+    const nxt=nextOccurrence(todo);
+    if(nxt)meta.appendChild(h("span",{style:"color:#444"},`next: ${nxt}`));
+    info.appendChild(meta);
+    const editBtn=h("button",{className:"btn-ghost btn-sm",onClick:()=>{
+      openModal("Edit task",todoForm(todo,data=>{Object.assign(todo,data);persist();render();}));
+    }},"Edit");
+    const delBtn=h("button",{className:"btn-danger btn-sm",onClick:()=>{
+      state.todos=state.todos.filter(t=>t.id!==todo.id);persist();render();
+    }},"✕");
+    card.append(chk,info,h("div",{className:"todo-actions"},editBtn,delBtn));
+    page.appendChild(card);
+  });
+  return page;
+}
+
+function renderLabelsPage(){
+  const page=h("div",{className:"page"});
+  page.appendChild(h("div",{className:"page-header"},[
+    h("div",{},[h("h2",{},"Labels"),h("p",{},`${state.labels.length} labels`)]),
+    h("button",{className:"btn-primary",onClick:()=>{
+      openModal("New label",labelForm(null,data=>{state.labels.push({...data,id:uid()});persist();render();}));
+    }},"+ Label")
+  ]));
+  state.labels.forEach(label=>{
+    const count=state.todos.filter(t=>t.labelId===label.id).length;
+    const card=h("div",{className:"card label-card",style:`border-left-color:${label.color}`});
+    card.append(
+      h("span",{className:"dot",style:`width:12px;height:12px;background:${label.color}`}),
+      h("span",{className:"name"},label.name),
+      h("span",{className:"count"},`${count} task${count!==1?"s":""}`),
+      h("button",{className:"btn-ghost btn-sm",onClick:()=>{
+        openModal("Edit label",labelForm(label,data=>{Object.assign(label,data);persist();render();}));
+      }},"Edit"),
+      h("button",{className:"btn-danger btn-sm",onClick:()=>{
+        if(count>0){alert("Reassign tasks first.");return;}
+        state.labels=state.labels.filter(l=>l.id!==label.id);persist();render();
+      }},"✕")
+    );
+    page.appendChild(card);
+  });
+  return page;
+}
+
+function renderStatsPage(){
+  const page=h("div",{className:"page"});
+  page.appendChild(h("div",{className:"page-header"},[h("div",{},[h("h2",{},"Statistics"),h("p",{},"How you're doing")])]));
+  const WINDOWS=[[7,"7 days"],[30,"30 days"],[90,"90 days"],[0,"All time"]];
+  const winSel=h("select",{style:"margin-bottom:16px;width:auto",onChange:e=>{state.statDays=+e.target.value;render();}});
+  WINDOWS.forEach(([v,l])=>{const o=h("option",{value:v},l);if(state.statDays===v)o.selected=true;winSel.appendChild(o);});
+  page.appendChild(winSel);
+  const winLabel=WINDOWS.find(([v])=>v===state.statDays)?.[1]||"7 days";
+  const days=state.statDays===0
+    ?(()=>{const s=new Set();state.todos.forEach(t=>{if(t.dueDate)s.add(t.dueDate);(t.completedDates||[]).forEach(d=>s.add(d));});return[...s].filter(d=>d!==today);})()
+    :Array.from({length:state.statDays},(_,i)=>new Date(Date.now()-(i+1)*86400000).toISOString().slice(0,10));
+  const todayTodos=state.todos.filter(t=>t.dueDate===today);
+  const todayDone=todayTodos.filter(t=>t.done).length;
+  const todayPct=todayTodos.length?todayDone/todayTodos.length:0;
+  const compRates=days.map(day=>{
+    const due=state.todos.filter(t=>t.dueDate===day||(t.completedDates||[]).includes(day));
+    if(!due.length)return null;
+    const done=due.filter(t=>(t.completedDates||[]).includes(day)||(t.done&&t.dueDate===day));
+    return done.length/due.length;
+  }).filter(v=>v!==null);
+  const avgPct=compRates.length?compRates.reduce((a,b)=>a+b,0)/compRates.length:0;
+  const compDiff=((todayPct-avgPct)*100).toFixed(1);
+  const compColor=todayPct>=avgPct?"#10B981":"#EF4444";
+  const compCard=h("div",{className:"stat-card"});
+  compCard.appendChild(h("h3",{},`Completion — today vs ${winLabel} avg`));
+  const compTop=h("div",{style:"display:flex;align-items:baseline;gap:6px;margin-bottom:4px"});
+  compTop.append(h("span",{className:"big-num"},`${Math.round(todayPct*100)}%`),h("span",{className:"diff",style:`color:${compColor}`},`${todayPct>=avgPct?"▲":"▼"} ${Math.abs(compDiff)}% vs avg`));
+  compCard.appendChild(compTop);
+  compCard.appendChild(h("div",{className:"chart-wrap"},barChart({
+    leftVal:`${Math.round(todayPct*100)}%`,leftPct:todayPct,leftLabel:"Today",leftColor:"#6366F1",leftSub:`${todayDone}/${todayTodos.length}`,
+    rightVal:`${Math.round(avgPct*100)}%`,rightPct:avgPct,rightLabel:`Avg (${winLabel})`,rightColor:"#3B82F6",rightSub:`${compRates.length}d data`
+  })));
+  page.appendChild(compCard);
+  const todayMins=todayTodos.filter(t=>t.done).reduce((s,t)=>s+(t.minutes||0),0);
+  const todayTotalMins=todayTodos.reduce((s,t)=>s+(t.minutes||0),0);
+  const minRates=days.map(day=>{
+    const due=state.todos.filter(t=>t.dueDate===day||(t.completedDates||[]).includes(day));
+    if(!due.length)return null;
+    const total=due.reduce((s,t)=>s+(t.minutes||0),0);
+    if(!total)return null;
+    const done=due.filter(t=>(t.completedDates||[]).includes(day)||(t.done&&t.dueDate===day));
+    return done.reduce((s,t)=>s+(t.minutes||0),0)/total;
+  }).filter(v=>v!==null);
+  const avgMinPct=minRates.length?minRates.reduce((a,b)=>a+b,0)/minRates.length:0;
+  const todayMinPct=todayTotalMins?todayMins/todayTotalMins:0;
+  const minDiff=((todayMinPct-avgMinPct)*100).toFixed(1);
+  const minColor=todayMinPct>=avgMinPct?"#10B981":"#EF4444";
+  const minCard=h("div",{className:"stat-card"});
+  minCard.appendChild(h("h3",{},`Minutes — today vs ${winLabel} avg`));
+  const minTop=h("div",{style:"display:flex;align-items:baseline;gap:6px;margin-bottom:4px"});
+  minTop.append(h("span",{className:"big-num"},`${todayMins}min`),h("span",{className:"diff",style:`color:${minColor}`},`${todayMinPct>=avgMinPct?"▲":"▼"} ${Math.abs(minDiff)}% vs avg`));
+  minCard.appendChild(minTop);
+  minCard.appendChild(h("div",{className:"chart-wrap"},barChart({
+    leftVal:`${todayMins}m`,leftPct:todayMinPct,leftLabel:"Today",leftColor:"#8B5CF6",leftSub:`of ${todayTotalMins}m`,
+    rightVal:`${Math.round(avgMinPct*100)}%`,rightPct:avgMinPct,rightLabel:`Avg (${winLabel})`,rightColor:"#14B8A6",rightSub:`${minRates.length}d data`
+  })));
+  page.appendChild(minCard);
+  const radarData=state.labels.map(l=>{
+    const lt=state.todos.filter(t=>t.labelId===l.id);
+    const done=lt.filter(t=>t.done).length;
+    return{label:l.name,value:lt.length?done/lt.length:0,color:l.color};
+  }).filter(d=>state.todos.some(t=>t.labelId===state.labels.find(l=>l.name===d.label)?.id));
+  const radarCard=h("div",{className:"stat-card"});
+  radarCard.appendChild(h("h3",{},"Completion by label"));
+  radarCard.appendChild(h("div",{className:"chart-wrap"},radarChart(radarData)));
+  const legend=h("div",{className:"legend"});
+  radarData.forEach(d=>legend.appendChild(h("span",{className:"legend-item",style:`color:${d.color};background:${d.color}22`},`${d.label}: ${Math.round(d.value*100)}%`)));
+  radarCard.appendChild(legend);
+  page.appendChild(radarCard);
+  return page;
+}
+
+// ── Router ────────────────────────────────────────────────────────────────────
+function setPage(p){
+  state.page=p;
+  ["todos","labels","stats"].forEach(id=>document.getElementById(`nav-${id}`).classList.toggle("active",id===p));
+  render();
+}
+function render(){
+  const app=document.getElementById("app");app.innerHTML="";
+  if(state.page==="todos")app.appendChild(renderTodosPage());
+  if(state.page==="labels")app.appendChild(renderLabelsPage());
+  if(state.page==="stats")app.appendChild(renderStatsPage());
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+render();
+// Auto-init if already granted (resume schedule on reload)
+if(Notification?.permission==="granted"){
+  state.notifStatus="granted";
+  scheduleNext();
+}
+</script>
+</body>
+</html>
